@@ -1,18 +1,28 @@
 'use client';
 import { useTheme } from 'next-themes';
+import { useEffect, useState } from 'react';
 import { Moon, Sun } from 'lucide-react';
 
-export default function ThemeToggle(){
+export default function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
   const isDark = resolvedTheme === 'dark';
+  const title = mounted ? (isDark ? 'Usar claro' : 'Usar escuro') : 'Mudar tema';
+
   return (
     <button
       aria-label="Mudar tema"
-      onClick={()=> setTheme(isDark ? 'light' : 'dark')}
+      onClick={() => mounted && setTheme(isDark ? 'light' : 'dark')}
       className="rounded-xl border p-2 hover:bg-white/60 dark:hover:bg-slate-800/60"
-      title={isDark ? 'Usar claro' : 'Usar escuro'}
+      title={title}
     >
-      {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      {/* Evita mismatch: só mostra o ícone correto depois de montar */}
+      {mounted ? (isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />) : (
+        <span className="inline-block h-4 w-4" />
+      )}
     </button>
   );
 }
