@@ -6,9 +6,7 @@ import { Moon, Sun } from 'lucide-react';
 export default function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-
   useEffect(() => setMounted(true), []);
-
   const isDark = resolvedTheme === 'dark';
   const title = mounted ? (isDark ? 'Usar claro' : 'Usar escuro') : 'Mudar tema';
 
@@ -19,10 +17,7 @@ export default function ThemeToggle() {
       className="rounded-xl border p-2 hover:bg-white/60 dark:hover:bg-slate-800/60"
       title={title}
     >
-      {/* Evita mismatch: só mostra o ícone correto depois de montar */}
-      {mounted ? (isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />) : (
-        <span className="inline-block h-4 w-4" />
-      )}
+      {mounted ? (isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />) : <span className="inline-block h-4 w-4" />}
     </button>
   );
 }

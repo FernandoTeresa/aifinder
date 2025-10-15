@@ -1,7 +1,19 @@
-import AnimatedBackdrop from '@/components/AnimatedBackdrop';
+// app/(site)/page.tsx
 import Hero from '@/components/Hero';
-import FeatureCards from '@/components/FeatureCards';
 import TrustBar from '@/components/TrustBar';
-import RankTable from '@/components/RankTable';
-export default function HomePage(){
-    return(<main className="relative min-h-[85vh]"><AnimatedBackdrop/><Hero/><TrustBar/><RankTable /><FeatureCards/></main>);}
+import FeatureCards from '@/components/FeatureCards';
+import HomeClient from './_components/HomeClient';
+
+export default function HomePage() {
+  return (
+    <main className="relative min-h-[85vh]">
+      {/* Hero e blocos leves renderizam no server */}
+      <Hero />
+      <TrustBar />
+      <FeatureCards />
+
+      {/* Blocos interativos/pesados (carregados no cliente) */}
+      <HomeClient />
+    </main>
+  );
+}
