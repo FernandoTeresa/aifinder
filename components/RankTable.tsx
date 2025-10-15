@@ -5,16 +5,19 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { models as allModels, overallScore } from '@/lib/mockModels';
 import { ArrowUpDown, ChevronLeft, ChevronRight, ExternalLink, Star, StarOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useI18n } from '@/components/I18nProvider';
 
 type SortKey = 'overall' | 'quality' | 'match' | 'value' | 'name';
 const PAGE_SIZES = [5, 10, 20];
 
 export default function RankTable() {
-  // 0) Evitar hydration mismatch
+  const { t } = useI18n();
+
+  // evitar hydration mismatch (renderiza skeleton no SSR e real depois do mount)
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  // 1) Estado persistente
+  // estado persistente
   const [caseKey, setCaseKey] = useLocalStorage<'all' | string>('af_case_key', 'all');
   const [lang, setLang] = useLocalStorage<'pt'|'en'|'es'|'fr'|'de'|'any'>('af_lang', 'pt');
   const [budget, setBudget] = useLocalStorage<'any'|'free'|'standard'|'premium'>('af_budget', 'any');
@@ -26,15 +29,13 @@ export default function RankTable() {
   const [query, setQuery] = useLocalStorage<string>('af_query', '');
   const [favorites, setFavorites] = useLocalStorage<string[]>('af_favs', []);
 
-  // 2) URL <-> estado
+  // URL <-> estado (partilhável)
   const router = useRouter();
   const search = useSearchParams();
-
   useEffect(() => {
     const q = search.get('q'); const c = search.get('case'); const l = search.get('lang');
     const b = search.get('budget'); const s = search.get('sort'); const d = search.get('desc');
     const p = search.get('page'); const ps = search.get('size');
-
     if (q !== null) setQuery(q);
     if (c !== null) setCaseKey(c);
     if (l !== null) setLang(l as any);
@@ -45,7 +46,6 @@ export default function RankTable() {
     if (ps !== null) setPageSize(Math.max(5, parseInt(ps)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
   useEffect(() => {
     const params = new URLSearchParams();
     if (query) params.set('q', query);
@@ -59,7 +59,7 @@ export default function RankTable() {
     router.replace(params.toString() ? `/?${params}` : '/', { scroll: false });
   }, [query, caseKey, lang, budget, sortKey, desc, page, pageSize, router]);
 
-  // 3) Dados derivados
+  // derivação
   const rows = useMemo(() => {
     const filtered = allModels
       .filter(m => {
@@ -81,13 +81,13 @@ export default function RankTable() {
     return filtered;
   }, [caseKey, lang, budget, onlyFavs, query, favorites, sortKey, desc]);
 
-  // 4) Paginação
+  // paginação
   const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
   const safePage = Math.min(page, totalPages);
   useEffect(() => { if (page !== safePage) setPage(safePage); }, [totalPages]);
   const paged = rows.slice((safePage - 1) * pageSize, safePage * pageSize);
 
-  // 5) Ações
+  // ações
   function toggleFav(id: string) {
     setFavorites(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   }
@@ -96,7 +96,7 @@ export default function RankTable() {
     else { setSortKey(k); setDesc(true); }
   }
 
-  // 6) PRÉ-MOUNT: desenha skeleton estável (evita mismatch SSR/CSR)
+  // skeleton (SSR) -> conteúdo real (CSR) sem mudar estilos
   if (!mounted) {
     return (
       <section className="relative z-10 mx-auto max-w-6xl px-4 py-14">
@@ -110,15 +110,14 @@ export default function RankTable() {
     );
   }
 
-  // 7) RENDER normal (após mount)
   return (
     <section className="relative z-10 mx-auto max-w-6xl px-4 py-14">
-      {/* filtros */}
+      {/* filtros (classes idênticas ao teu layout) */}
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <input
           value={query}
           onChange={e => { setQuery(e.target.value); setPage(1); }}
-          placeholder="Procurar modelo ou fornecedor…"
+          placeholder={t('rank_filters_search')}
           className="min-w-[260px] flex-1 rounded-xl border px-3 py-2 text-sm"
         />
         <select className="rounded-xl border px-2 py-2 text-sm" value={caseKey} onChange={e => { setCaseKey(e.target.value); setPage(1); }}>
@@ -134,14 +133,14 @@ export default function RankTable() {
         </select>
         <label className="inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm">
           <input type="checkbox" checked={onlyFavs} onChange={e => { setOnlyFavs(e.target.checked); setPage(1); }} />
-          Só favoritos
+          {t('rank_filters_only_favs')}
         </label>
         <select className="rounded-xl border px-2 py-2 text-sm" value={pageSize} onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}>
           {PAGE_SIZES.map(n => <option key={n} value={n}>{n}/página</option>)}
         </select>
       </div>
 
-      {/* tabela */}
+      {/* tabela (markup/classes iguais) */}
       <div className="overflow-hidden rounded-2xl border bg-white/70 backdrop-blur">
         <div className="grid grid-cols-[auto,2fr,1fr,1fr,1fr,1fr,auto] items-center gap-2 border-b bg-white/60 px-4 py-2 text-xs font-semibold">
           <div className="text-center">Fav</div>
@@ -185,10 +184,10 @@ export default function RankTable() {
 
               <div className="flex items-center justify-end gap-2">
                 <a href={m.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-xl border px-2 py-1 text-xs hover:bg-white/60">
-                  Abrir <ExternalLink className="h-3.5 w-3.5" />
+                  {t('open')} <ExternalLink className="h-3.5 w-3.5" />
                 </a>
-                <a href={`/comparar?ids=${encodeURIComponent(m.id)}`} className="inline-flex items-center gap-1 rounded-xl border px-2 py-1 text-xs hover:bg-white/60" title="Comparar este modelo">
-                  Comparar
+                <a href={`/comparar?ids=${encodeURIComponent(m.id)}`} className="inline-flex items-center gap-1 rounded-xl border px-2 py-1 text-xs hover:bg-white/60" title={t('compare')}>
+                  {t('compare')}
                 </a>
               </div>
             </motion.div>
@@ -202,7 +201,7 @@ export default function RankTable() {
         </AnimatePresence>
       </div>
 
-      {/* paginação */}
+      {/* paginação (sem alterações visuais) */}
       <div className="mt-3 flex items-center justify-between text-sm">
         <div className="opacity-70">Página {safePage} de {totalPages} • {rows.length} resultados</div>
         <div className="flex items-center gap-2">
