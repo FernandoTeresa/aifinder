@@ -1,0 +1,26 @@
+1) Instalar dependência:
+   npm i next-themes
+
+2) Envolver a app com ThemeProvider em app/layout.tsx:
+   import { ThemeProvider } from '@/components/ThemeProvider';
+   // ...
+   export default function RootLayout({ children }: { children: React.ReactNode }) {
+     return (
+       <html lang="pt-PT" suppressHydrationWarning>
+         <body className="min-h-screen bg-gradient-to-b from-slate-50 to-white text-slate-900 dark:from-slate-900 dark:to-slate-950 dark:text-slate-100">
+           <ThemeProvider>
+             {/* header ... */}
+             {children}
+             {/* footer ... */}
+           </ThemeProvider>
+         </body>
+       </html>
+     );
+   }
+
+3) Colocar o botão no header (exemplo):
+   import ThemeToggle from '@/components/ThemeToggle';
+   // dentro do header, perto do "Entrar":
+   <ThemeToggle />
+
+4) Tailwind já suporta class "dark". Podes ajustar cores com variantes "dark:*".

@@ -1,0 +1,5 @@
+Para o Portal do Cliente funcionar:
+- Em produção, cria o cliente Stripe e guarda o "customerId" (cus_...) associado ao utilizador.
+- Preenche esse ID quando o user autenticado abrir /conta.
+- Define NEXT_PUBLIC_SITE_URL, STRIPE_SECRET_KEY nas variáveis de ambiente (Vercel).
+- Em Stripe Dashboard: Billing -> Customer portal -> Configurar (métodos, idioma, etc.).
