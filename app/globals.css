@@ -1,6 +1,2 @@
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-html, body { min-height: 100%; }
+:root{--radius:1rem}html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}*:focus-visible{outline:2px solid #0ea5e9;outline-offset:2px}
+@tailwind base;@tailwind components;@tailwind utilities;

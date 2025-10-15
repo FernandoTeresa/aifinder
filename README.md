@@ -10,6 +10,8 @@ Comparador inteligente de IAs (Next.js + Stripe + Supabase).
 - Apple Pay/Google Pay (automático com `['card']`), MB Way (futuro)
 
 ## Setup rápido
+> Requer Node.js >= 20.9 (sugerimos seguir a versão listada em `.nvmrc` com nvm ou fnm).
+
 ```bash
 npm i
 cp .env.example .env.local
