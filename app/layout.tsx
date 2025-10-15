@@ -69,7 +69,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 </Link>
                 <Link
                   className="rounded-full border border-transparent bg-white/90 px-4 py-1.5 text-sm font-semibold text-[#050816] transition hover:bg-white"
-                  href="/pt/precos"
+                  href="/precos"
                 >
                   Experimentar
                 </Link>
