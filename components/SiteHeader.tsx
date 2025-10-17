@@ -1,11 +1,22 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Menu, X } from 'lucide-react';
 
 export default function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
+
+  useEffect(() => {
+    // Mostra o link "Admin" apenas se já existe um token guardado
+    try {
+      const t = localStorage.getItem('admin_token');
+      setShowAdmin(!!t);
+    } catch {
+      setShowAdmin(false);
+    }
+  }, []);
 
   return (
     <header className="sticky top-0 z-40">
@@ -28,10 +39,13 @@ export default function SiteHeader() {
 
           <nav className="ml-auto hidden items-center gap-6 md:flex">
             <HeaderLink href="/precos">Preços</HeaderLink>
-            {/* 👇 evita o scroll automático do hash; o efeito suave é feito na página */}
+            {/* evita o scroll automático do hash; o efeito suave é feito na página */}
             <HeaderLink href="/contacto#formulario-contacto" scroll={false}>Contacto</HeaderLink>
             <HeaderLink href="/privacidade">Privacidade</HeaderLink>
             <HeaderLink href="/termos">Termos</HeaderLink>
+
+            {/* Link Admin visível só se o token existir no browser */}
+            {showAdmin && <HeaderLink href="/conta-admin">Admin</HeaderLink>}
           </nav>
 
           <Link
@@ -60,6 +74,14 @@ export default function SiteHeader() {
             </MobileLink>
             <MobileLink href="/privacidade" onClick={() => setOpen(false)}>Privacidade</MobileLink>
             <MobileLink href="/termos" onClick={() => setOpen(false)}>Termos</MobileLink>
+
+            {/* Admin no menu mobile apenas se houver token */}
+            {showAdmin && (
+              <MobileLink href="/conta-admin" onClick={() => setOpen(false)}>
+                Admin
+              </MobileLink>
+            )}
+
             <div className="mt-2 border-t border-white/10 pt-2">
               <Link
                 href="/conta"
