@@ -1,18 +1,14 @@
 // lib/supabaseAdmin.ts
 import { createClient } from '@supabase/supabase-js';
 
-// ⚠️ Usa a service role key (não a pública)
-const supabaseUrl = process.env.SUPABASE_URL!;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE!;
+const url = process.env.SUPABASE_URL!;
+const serviceKey = process.env.SUPABASE_SERVICE_ROLE!;
 
-if (!supabaseUrl || !supabaseServiceRoleKey) {
-  throw new Error('❌ Missing Supabase environment variables (SUPABASE_URL or SUPABASE_SERVICE_ROLE)');
+if (!url || !serviceKey) {
+  // Não lançar erro na import — só log (para build não falhar em CI sem secrets)
+  console.warn('[supabaseAdmin] SUPABASE_URL ou SUPABASE_SERVICE_ROLE ausentes');
 }
 
-// Cliente com permissões administrativas (server-side only)
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-  },
+export const supabaseAdmin = createClient(url, serviceKey, {
+  auth: { persistSession: false, autoRefreshToken: false },
 });
