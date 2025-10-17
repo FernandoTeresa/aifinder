@@ -2,7 +2,6 @@
   "root": true,
   "extends": ["next/core-web-vitals"],
   "rules": {
-    // Desliga regras que estão a quebrar o build agora
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/no-unused-vars": "off",
     "no-unused-vars": "off",

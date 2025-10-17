@@ -2,7 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
 
-  // ✅ Não bloquear o build por ESLint/TS
+  // Não deixar ESLint/TS travarem o build
   eslint: { ignoreDuringBuilds: true },
   typescript: { ignoreBuildErrors: true },
 };
