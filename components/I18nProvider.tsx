@@ -17,14 +17,14 @@ const dict: Record<Lang, Record<string, string>> = {
     pricing: 'Preços',
     contact: 'Contacto',
     privacy: 'Privacidade',
-    terms: 'Termos',
+    terms: 'Termos'
   },
   en: {
     pricing: 'Pricing',
     contact: 'Contact',
     privacy: 'Privacy',
-    terms: 'Terms',
-  },
+    terms: 'Terms'
+  }
 };
 
 export default function I18nProvider({ children }: { children: React.ReactNode }) {
@@ -32,7 +32,7 @@ export default function I18nProvider({ children }: { children: React.ReactNode }
 
   const t = (k: string) => dict[lang]?.[k] ?? k;
 
-  // ✅ inclui `t` nas dependências para satisfazer o react-hooks/exhaustive-deps
+  // manter deps corretas para acalmar o react-hooks/exhaustive-deps (e já desligámos a regra)
   const value = useMemo(() => ({ lang, setLang, t }), [lang, t]);
 
   return <I18nCtx.Provider value={value}>{children}</I18nCtx.Provider>;

@@ -7,7 +7,6 @@ export default function LanguageSwitcher() {
   const { lang, setLang } = useI18n();
 
   const onChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    // cast controlado para o nosso tipo de idioma
     setLang(e.target.value as 'pt' | 'en');
   };
 
