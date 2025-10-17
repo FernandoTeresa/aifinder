@@ -1,49 +1,56 @@
+// app/api/admin/ai/ingest/[src]/route.ts
 import { NextResponse } from 'next/server';
-import { isAdminAuthenticated } from '@/lib/adminAuth';
-import { upsertBatch } from '@/lib/ingest/merge';
-import { fetchSampleCsv } from '@/lib/ingest/sources/sample_csv';
-import { fetchProviderApi } from '@/lib/ingest/sources/provider_api';
+import { mergeTools } from '@/lib/ingest/merge';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
 export const runtime = 'nodejs';
 
-export async function POST(req: Request, { params }: { params: { src: string } }) {
-  if (!isAdminAuthenticated()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const url = new URL(req.url);
-  const feed = url.searchParams.get('url') || '';
+type LoadFn = (params: Record<string, string | undefined>) => Promise<ReturnType<typeof mergeTools> extends (infer U)[] ? U[] : any[]>;
 
-  const started = new Date();
-  let stats = { inserted: 0, updated: 0, unchanged: 0, deactivated: 0 };
+const SOURCES: Record<string, () => Promise<{ load: LoadFn }>> = {
+  sample_csv: () => import('@/lib/ingest/sources/sample_csv'),
+  provider_api: () => import('@/lib/ingest/sources/provider_api'),
+};
 
+export async function POST(
+  req: Request,
+  { params }: { params: { src: string } }
+) {
   try {
-    let rows = [];
-    if (params.src === 'sample_csv') {
-      if (!feed) throw new Error('query param ?url= obrigatório');
-      rows = await fetchSampleCsv(feed);
-    } else if (params.src === 'provider_api') {
-      if (!feed) throw new Error('query param ?url= obrigatório');
-      rows = await fetchProviderApi(feed);
-    } else {
-      return NextResponse.json({ error: 'Fonte desconhecida' }, { status: 400 });
+    // auth simples
+    const token = req.headers.get('x-admin-token') ?? '';
+    if (!process.env.ADMIN_TOKEN || token !== process.env.ADMIN_TOKEN) {
+      return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
     }
 
-    stats = await upsertBatch(rows);
+    const urlObj = new URL(req.url);
+    const searchParams = Object.fromEntries(urlObj.searchParams.entries());
 
-    await supabaseAdmin.from('ai_ingest_audit').insert({
-      source: params.src,
-      run_started_at: started.toISOString(),
-      stats,
-      errors: null
-    });
+    const loader = SOURCES[params.src];
+    if (!loader) {
+      return NextResponse.json({ error: `fonte desconhecida: ${params.src}` }, { status: 400 });
+    }
 
-    return NextResponse.json({ ok: true, stats });
-  } catch (e: any) {
-    await supabaseAdmin.from('ai_ingest_audit').insert({
-      source: params.src,
-      run_started_at: started.toISOString(),
-      stats,
-      errors: [String(e?.message || e)]
-    });
-    return NextResponse.json({ error: String(e?.message || e) }, { status: 500 });
+    const { load } = await loader();
+    const incoming = await load(searchParams);
+
+    // carrega atuais
+    const { data: current, error: e1 } = await supabaseAdmin
+      .from('ai_tools')
+      .select('*');
+    if (e1) throw e1;
+
+    const merged = mergeTools(current ?? [], incoming);
+
+    // upsert (por slug)
+    const { error: e2 } = await supabaseAdmin
+      .from('ai_tools')
+      .upsert(merged, { onConflict: 'slug' });
+    if (e2) throw e2;
+
+    return NextResponse.json({ ok: true, added: incoming.length, total: merged.length });
+  } catch (err: any) {
+    console.error(err);
+    return NextResponse.json({ error: String(err?.message || err) }, { status: 500 });
   }
 }
