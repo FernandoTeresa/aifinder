@@ -35,15 +35,33 @@ export default function FeatureCards() {
         {items.map(({ icon: Icon, title, desc, detail }) => (
           <article
             key={title}
-            className="group relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.05] p-8 shadow-[0_30px_80px_-45px_rgba(56,189,248,0.6)] transition duration-500 hover:border-white/20 hover:bg-white/[0.08]"
+            className="
+              group relative overflow-hidden glass-card p-8
+              transition duration-400 hover:border-white/20 hover:bg-white/10
+            "
           >
-            <span className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-60" />
-            <div className="inline-flex size-12 items-center justify-center rounded-2xl bg-white/10 text-sky-200 transition group-hover:scale-105 group-hover:text-white">
+            {/* hairline superior suave */}
+            <span className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-60" />
+
+            {/* ícone */}
+            <div
+              className="
+                inline-flex size-12 items-center justify-center rounded-2xl
+                bg-white/10 text-cyan-200 transition
+                group-hover:scale-[1.03] group-hover:text-white
+              "
+            >
               <Icon className="h-5 w-5" />
             </div>
+
+            {/* textos */}
             <h3 className="mt-6 text-xl font-semibold text-white">{title}</h3>
             <p className="mt-3 text-sm text-white/70">{desc}</p>
-            <p className="mt-4 text-xs text-white/50">{detail}</p>
+            <p className="mt-4 text-xs text-white/55">{detail}</p>
+
+            {/* brilho suave ao pair */}
+            <div className="pointer-events-none absolute -inset-8 opacity-0 blur-2xl transition group-hover:opacity-100"
+                 style={{ background: 'radial-gradient(40% 40% at 50% 0%, rgba(56,189,248,0.18), transparent)' }} />
           </article>
         ))}
       </div>

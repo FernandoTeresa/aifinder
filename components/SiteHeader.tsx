@@ -1,153 +1,121 @@
 'use client';
+
+import Link from 'next/link';
 import { useState } from 'react';
-import ThemeToggle from '@/components/ThemeToggle';
 import { Menu, X } from 'lucide-react';
-import { useI18n } from '@/components/I18nProvider';
-import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 export default function SiteHeader() {
-  const { t } = useI18n();
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-30 border-b bg-white/60 backdrop-blur dark:bg-slate-900/60">
-      <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
-        <a href="/" className="flex items-center gap-2">
-          <div className="grid size-8 place-items-center rounded-xl bg-[#0A2540] font-bold text-white">
-            AF
-          </div>
-          <div>
-            <div className="leading-tight font-semibold">AI Finder</div>
-            <div className="text-xs opacity-60 -mt-0.5">
-              Pesquisa · Comparação
+    <header className="sticky top-0 z-40">
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(120%_120%_at_10%_-80%,rgba(56,189,248,0.18),transparent_45%)]" />
+      <div className="pointer-events-none absolute inset-0 -z-20 bg-[radial-gradient(120%_120%_at_95%_-40%,rgba(59,130,246,0.14),transparent_55%)]" />
+
+      <div className="mx-auto max-w-6xl px-4">
+        <div className="mt-3 mb-3 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-2 backdrop-blur-xl">
+          <Link href="/" className="group flex items-center gap-2 rounded-xl px-2 py-1">
+            <div className="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-cyan-600 to-blue-700 text-white font-bold">
+              AF
             </div>
-          </div>
-        </a>
+            <div className="leading-tight">
+              <div className="font-semibold text-white">AI Finder</div>
+              <div className="text-[11px] uppercase tracking-[0.26em] text-white/50">
+                Pesquisa · Comparação · Decisão
+              </div>
+            </div>
+          </Link>
 
-        {/* campo de pesquisa */}
-        <form action="/" method="GET" className="ml-6 hidden md:block">
-          <input
-            name="q"
-            placeholder={t('header_search')}
-            className="w-56 rounded-xl border px-3 py-1.5 text-sm"
-          />
-        </form>
+          <nav className="ml-auto hidden items-center gap-6 md:flex">
+            <HeaderLink href="/precos">Preços</HeaderLink>
+            {/* 👇 evita o scroll automático do hash; o efeito suave é feito na página */}
+            <HeaderLink href="/contacto#formulario-contacto" scroll={false}>Contacto</HeaderLink>
+            <HeaderLink href="/privacidade">Privacidade</HeaderLink>
+            <HeaderLink href="/termos">Termos</HeaderLink>
+          </nav>
 
-        {/* navegação desktop */}
-        <nav className="ml-auto hidden items-center gap-6 text-sm md:flex">
-          <a className="opacity-80 hover:opacity-100" href="/precos">
-            {t('nav_prices')}
-          </a>
-          <a className="opacity-80 hover:opacity-100" href="/favoritos">
-            {t('nav_favorites')}
-          </a>
-          <a className="opacity-80 hover:opacity-100" href="/contacto">
-            {t('nav_contact')}
-          </a>
-          <a className="opacity-80 hover:opacity-100" href="/privacidade">
-            {t('nav_privacy')}
-          </a>
-          <a className="opacity-80 hover:opacity-100" href="/termos">
-            {t('nav_terms')}
-          </a>
-          <LanguageSwitcher />
-          <ThemeToggle />
-          <a
-            className="rounded-2xl border px-3 py-1.5 text-sm hover:bg-white/70 dark:hover:bg-slate-800/60"
+          <Link
             href="/conta"
+            className="ml-2 hidden rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 px-3 py-1.5 text-sm font-semibold text-white transition hover:opacity-90 md:inline-block"
           >
-            {t('nav_login')}
-          </a>
-        </nav>
+            Entrar
+          </Link>
 
-        {/* botão menu mobile */}
-        <button
-          className="ml-auto rounded-xl border p-2 md:hidden"
-          onClick={() => setOpen(true)}
-          aria-label="Abrir menu"
-        >
-          <Menu className="h-5 w-5" />
-        </button>
+          <button
+            aria-label="Abrir menu"
+            onClick={() => setOpen((v) => !v)}
+            className="ml-auto inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/5 p-2 text-white md:hidden"
+          >
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
 
-      {/* menu mobile */}
       {open && (
-        <div
-          className="fixed inset-0 z-40 bg-black/30 md:hidden"
-          onClick={() => setOpen(false)}
-        >
-          <div
-            className="absolute right-0 top-0 h-full w-72 bg-white p-4 dark:bg-slate-900"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="mb-3 flex items-center justify-between">
-              <div className="font-semibold">Menu</div>
-              <button
-                className="rounded-xl border p-2"
-                onClick={() => setOpen(false)}
-                aria-label="Fechar menu"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <form action="/" method="GET" className="mb-3">
-              <input
-                name="q"
-                placeholder={t('header_search')}
-                className="w-full rounded-xl border px-3 py-2 text-sm"
-              />
-            </form>
-
-            <nav className="grid gap-2 text-sm">
-              <a
-                className="opacity-80 hover:opacity-100"
-                href="/precos"
-                onClick={() => setOpen(false)}
-              >
-                {t('nav_prices')}
-              </a>
-              <a
-                className="opacity-80 hover:opacity-100"
-                href="/favoritos"
-                onClick={() => setOpen(false)}
-              >
-                {t('nav_favorites')}
-              </a>
-              <a
-                className="opacity-80 hover:opacity-100"
-                href="/contacto"
-                onClick={() => setOpen(false)}
-              >
-                {t('nav_contact')}
-              </a>
-              <a
-                className="opacity-80 hover:opacity-100"
-                href="/privacidade"
-                onClick={() => setOpen(false)}
-              >
-                {t('nav_privacy')}
-              </a>
-              <a
-                className="opacity-80 hover:opacity-100"
-                href="/termos"
-                onClick={() => setOpen(false)}
-              >
-                {t('nav_terms')}
-              </a>
-              <LanguageSwitcher />
-              <ThemeToggle />
-              <a
-                className="rounded-2xl border px-3 py-1.5 text-sm hover:bg-white/70 dark:hover:bg-slate-800/60"
+        <div className="mx-auto max-w-6xl px-4 pb-3">
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-2 backdrop-blur-xl md:hidden">
+            <MobileLink href="/precos" onClick={() => setOpen(false)}>Preços</MobileLink>
+            <MobileLink href="/contacto#formulario-contacto" scroll={false} onClick={() => setOpen(false)}>
+              Contacto
+            </MobileLink>
+            <MobileLink href="/privacidade" onClick={() => setOpen(false)}>Privacidade</MobileLink>
+            <MobileLink href="/termos" onClick={() => setOpen(false)}>Termos</MobileLink>
+            <div className="mt-2 border-t border-white/10 pt-2">
+              <Link
                 href="/conta"
                 onClick={() => setOpen(false)}
+                className="block rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 px-3 py-2 text-center text-sm font-semibold text-white hover:opacity-90"
               >
-                {t('nav_login')}
-              </a>
-            </nav>
+                Entrar
+              </Link>
+            </div>
           </div>
         </div>
       )}
     </header>
+  );
+}
+
+function HeaderLink({
+  href,
+  children,
+  scroll,
+}: {
+  href: string;
+  children: React.ReactNode;
+  scroll?: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      scroll={scroll}
+      prefetch
+      className="rounded-xl px-2 py-1 text-sm text-white/75 transition hover:text-white hover:underline underline-offset-4"
+    >
+      {children}
+    </Link>
+  );
+}
+
+function MobileLink({
+  href,
+  children,
+  onClick,
+  scroll,
+}: {
+  href: string;
+  children: React.ReactNode;
+  onClick?: () => void;
+  scroll?: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      scroll={scroll}
+      onClick={onClick}
+      className="block rounded-xl px-3 py-2 text-sm text-white/80 transition hover:bg-white/10 hover:text-white"
+    >
+      {children}
+    </Link>
   );
 }
