@@ -3,11 +3,10 @@ import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { stripe } from '@/lib/stripe';
 
-type Body = {
-  plan?: 'free' | 'standard' | 'premium';
-  // email?: string; // <<< NÃO vamos usar para prefill, para não bloquear o campo no checkout
-  userId?: string;
-};
+type Plan = 'free' | 'standard' | 'premium';
+type Body = { plan?: Plan; userId?: string };
+
+export const runtime = 'nodejs';
 
 function getBaseUrl() {
   if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL;
@@ -21,18 +20,14 @@ export async function POST(req: Request) {
   try {
     const { plan, userId }: Body = await req.json();
 
-    if (!process.env.STRIPE_SECRET_KEY) {
+    if (!plan) return NextResponse.json({ error: 'Plano inválido.' }, { status: 400 });
+    if (!process.env.STRIPE_SECRET_KEY)
       return NextResponse.json({ error: 'STRIPE_SECRET_KEY em falta.' }, { status: 500 });
-    }
-    if (!plan) {
-      return NextResponse.json({ error: 'Plano inválido.' }, { status: 400 });
-    }
 
     const siteUrl = getBaseUrl();
 
     if (plan === 'free') {
-      // Sem cobrança; podes trocar para mode 'setup' se quiseres recolher método
-      return NextResponse.json({ url: `${siteUrl}/conta?status=success` }, { status: 200 });
+      return NextResponse.json({ url: `${siteUrl}/conta?status=success` });
     }
 
     const priceMap: Record<'standard' | 'premium', string> = {
@@ -40,41 +35,36 @@ export async function POST(req: Request) {
       premium: process.env.STRIPE_PRICE_ID_PREMIUM || '',
     };
     const priceId = priceMap[plan];
-    if (!priceId) {
+    if (!priceId)
       return NextResponse.json(
-        { error: `STRIPE_PRICE_ID_${plan.toUpperCase()} em falta.` },
-        { status: 500 }
+        { error: `Price ID em falta para o plano: ${plan}.` },
+        { status: 500 },
       );
-    }
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
-      payment_method_types: ['card'], // Apple Pay/Google Pay via Checkout
+      line_items: [{ price: priceId, quantity: 1 }],
+
+      // Pagamentos (Apple/Google Pay surgem automaticamente no Checkout)
+      payment_method_types: ['card'],
       allow_promotion_codes: true,
 
-      // 👇 NÃO definir customer nem customer_email → Stripe mostra o campo "Email" ao cliente
-      // customer_email: undefined,
-      // customer: undefined,
-
-      // opcional, mas ajuda a criar o Customer e atualizar dados
-      customer_creation: 'always',
-      customer_update: { name: 'auto', address: 'auto', shipping: 'auto' },
+      // ❌ removido: customer_update (requer 'customer' explícito)
       billing_address_collection: 'auto',
       phone_number_collection: { enabled: false },
 
-      line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${siteUrl}/conta?status=success`,
       cancel_url: `${siteUrl}/precos?status=cancelled`,
-      metadata: { plan, userId: userId || '' },
+
+      metadata: { plan, userId: userId || '', app: 'aifinder' },
     });
 
-    if (!session?.url) {
-      return NextResponse.json({ error: 'Sessão criada sem URL.' }, { status: 500 });
-    }
-    return NextResponse.json({ url: session.url }, { status: 200 });
+    if (!session?.url) return NextResponse.json({ error: 'Sessão criada sem URL.' }, { status: 500 });
+
+    return NextResponse.json({ url: session.url });
   } catch (err: any) {
-    const details = err?.raw?.message || err?.message || String(err);
-    console.error('Stripe checkout error:', err);
-    return NextResponse.json({ error: `Erro Stripe: ${details}` }, { status: 500 });
+    const msg = err?.raw?.message || err?.message || String(err);
+    console.error('[checkout] error:', err);
+    return NextResponse.json({ error: `Erro Stripe: ${msg}` }, { status: 500 });
   }
 }
