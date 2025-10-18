@@ -1,27 +1,22 @@
-// lib/authAdmin.ts
-/**
- * Valida o token do admin a partir do header.
- * Aceita:
- *  - Authorization: Bearer <ADMIN_TOKEN>
- *  - x-admin-token: <ADMIN_TOKEN>
- */
-export function checkAdminToken(req: Request):
-  | { ok: true }
-  | { ok: false; status: number; msg: string } {
-  const expected = process.env.ADMIN_TOKEN ?? '';
+// lib/adminAuth.ts
+import { cookies } from 'next/headers';
 
-  if (!expected) {
-    return { ok: false, status: 500, msg: 'ADMIN_TOKEN não configurado no servidor' };
-  }
+export const adminCookieName = 'admin_token';
 
-  const auth = req.headers.get('authorization') || '';
-  const bearer = auth.toLowerCase().startsWith('bearer ') ? auth.slice(7) : '';
-  const headerToken = req.headers.get('x-admin-token') || '';
+export function expectedAdminToken(): string {
+  // usa segredo privado em produção
+  return process.env.ADMIN_TOKEN || process.env.NEXT_PUBLIC_ADMIN_PASSWORD || '';
+}
 
-  const provided = bearer || headerToken;
+export function validateToken(token?: string | null): boolean {
+  const expected = expectedAdminToken();
+  return Boolean(token && expected && token === expected);
+}
 
-  if (!provided || provided !== expected) {
-    return { ok: false, status: 401, msg: 'Não autorizado' };
-  }
-  return { ok: true };
+export function getTokenFromCookies(): string | undefined {
+  return cookies().get(adminCookieName)?.value;
+}
+
+export function isAdminFromCookies(): boolean {
+  return validateToken(getTokenFromCookies());
 }
