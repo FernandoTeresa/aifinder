@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { isAdminAuthenticated } from '@/lib/adminAuth';
+import { isAdminAuthenticated } from '@/lib/authAdmin';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
 export const runtime = 'nodejs';

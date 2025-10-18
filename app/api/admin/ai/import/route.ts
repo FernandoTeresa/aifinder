@@ -1,7 +1,7 @@
 // app/api/admin/ai/import/route.ts
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
-import { isAdminAuthenticated } from '@/lib/adminAuth';
+import { isAdminAuthenticated } from '@/lib/authAdmin';
 
 export const runtime = 'nodejs';
 
