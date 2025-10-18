@@ -1,83 +1,60 @@
-// components/admin/AdminLoginForm.tsx
 'use client';
 
 import { useState } from 'react';
 
-/**
- * Formulário de login do backoffice.
- * Envia a password para /api/admin/login, que define o cookie httpOnly
- * e depois recarrega /conta-admin para o servidor já ver o cookie.
- */
 export default function AdminLoginForm() {
-  const [password, setPassword] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
+  const [token, setToken] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
-  async function onSubmit(e: React.FormEvent) {
+  async function doLogin(e: React.FormEvent) {
     e.preventDefault();
-    setBusy(true);
-    setMsg(null);
-
+    setLoading(true);
+    setErr(null);
     try {
       const res = await fetch('/api/admin/login', {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ password }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
       });
 
-      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setMsg(data?.error || `Erro ${res.status}`);
-      } else {
-        // Recarrega a página para o server ler o cookie (httpOnly)
-        window.location.assign('/conta-admin');
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error || 'Falha no login');
       }
-    } catch (err: any) {
-      setMsg(err?.message || 'Erro de rede');
+
+      // espelhar no localStorage para o Header
+      try { localStorage.setItem('admin_token', token); } catch {}
+
+      // refrescar a página para apanhar cookie e mudar o estado do Header
+      window.location.assign('/conta-admin');
+    } catch (e: any) {
+      setErr(e.message);
     } finally {
-      setBusy(false);
+      setLoading(false);
     }
   }
 
   return (
-    <form
-      onSubmit={onSubmit}
-      className="mx-auto max-w-sm rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur"
-    >
-      <h1 className="mb-2 text-2xl font-semibold text-white">Área Administrativa</h1>
-      <p className="mb-4 text-sm text-white/70">
-        Introduz a password do administrador.
-      </p>
-
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="ADMIN_TOKEN"
-        className="w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-white placeholder:text-white/40 outline-none"
-        autoComplete="current-password"
-      />
-
+    <form onSubmit={doLogin} className="max-w-sm space-y-3">
+      <label className="block text-sm text-white/80">
+        Token de administrador
+        <input
+          type="password"
+          value={token}
+          onChange={(e) => setToken(e.target.value)}
+          className="mt-1 w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-white"
+          placeholder="cola aqui o ADMIN_TOKEN"
+        />
+      </label>
+      {err && <p className="text-sm text-red-400">{err}</p>}
       <button
         type="submit"
-        disabled={busy}
-        className="mt-3 w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-white transition hover:bg-white/15 disabled:opacity-60"
+        disabled={loading}
+        className="rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 px-3 py-2 text-sm font-semibold text-white disabled:opacity-60"
       >
-        {busy ? 'A entrar…' : 'Entrar'}
+        {loading ? 'A entrar...' : 'Entrar'}
       </button>
-
-      {msg && (
-        <div className="mt-3 rounded-xl border border-rose-400/30 bg-rose-400/10 px-3 py-2 text-sm text-rose-200">
-          {msg}
-        </div>
-      )}
-
-      {/* Dica útil em desenvolvimento */}
-      {process.env.NODE_ENV !== 'production' && (
-        <p className="mt-3 text-xs text-white/40">
-          Dica: a password é o valor de <code>ADMIN_TOKEN</code> no teu <code>.env.local</code>.
-        </p>
-      )}
     </form>
   );
 }

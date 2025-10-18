@@ -1,25 +1,28 @@
-// app/(admin)/conta-admin/page.tsx
-import { isAdminFromCookies } from '@/lib/authAdmin';
+import { cookies, headers } from 'next/headers';
 import AdminLoginForm from '@/components/admin/AdminLoginForm';
-import LegacyAdminContent from '@/components/LegacyAdminContent';
-export const dynamic = 'force-dynamic'; // garante leitura de cookies por request
+import { adminCookieName } from '@/lib/authAdmin';
 
 export const metadata = {
   title: 'Admin · AI Finder',
 };
 
-export default function AdminPage() {
-  const authed = isAdminFromCookies();
+export default async function AdminPage() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(adminCookieName)?.value || null;
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
-      {authed ? (
+      {!token ? (
         <>
-          <h1 className="mb-4 text-2xl font-semibold text-white">Backoffice</h1>
-          <LegacyAdminContent />
+          <h1 className="mb-4 text-2xl font-semibold">Entrar no painel</h1>
+          <AdminLoginForm />
         </>
       ) : (
-        <AdminLoginForm />
+        <>
+          <h1 className="mb-4 text-2xl font-semibold">Catálogo de IAs</h1>
+          {/* aqui entram os teus componentes/CRUD */}
+          <p className="text-white/70">Autenticado. Em breve: CRUD do catálogo.</p>
+        </>
       )}
     </main>
   );
